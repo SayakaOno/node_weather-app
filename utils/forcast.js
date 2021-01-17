@@ -3,25 +3,31 @@ const { getWeatherUrl } = require('../apiURL');
 
 const forcast = (latitude, longitude, callback) => {
   const url = getWeatherUrl(latitude, longitude);
-  request({ url, json: true }, (error, response) => {
-    if (error) {
-      callback('Unable to connect to weather service!', error);
-    } else if (response.body.error) {
-      callback('Unable to find location!', response.body.error);
-    } else {
-      const {
-        weather_descriptions,
-        temperature,
-        feelslike
-      } = response.body.current;
-      callback(
-        undefined,
-        `${
-          weather_descriptions[0]
-        }. It is currently ${temperature} degrees out. It feels like ${feelslike} degrees out.`
-      );
+  request(
+    { url, json: true },
+    (
+      error,
+      {
+        body: {
+          current: { weather_descriptions, temperature, feelslike },
+          error: forcastError
+        }
+      }
+    ) => {
+      if (error) {
+        callback('Unable to connect to weather service!', error);
+      } else if (forcastError) {
+        callback('Unable to find location!', forcastError);
+      } else {
+        callback(
+          undefined,
+          `${
+            weather_descriptions[0]
+          }. It is currently ${temperature} degrees out. It feels like ${feelslike} degrees out.`
+        );
+      }
     }
-  });
+  );
 };
 
 module.exports = forcast;
